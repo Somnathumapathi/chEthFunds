@@ -1,15 +1,26 @@
-const hre = require("hardhat");
+const { ethers } = require('hardhat');
 
 async function main() {
-    const contract = await hre.ethers.deployContract("ChitFund", [2, hre.ethers.parseEther('0.005'), 2]);
-    await contract.waitForDeployment();
+    // Specify the parameters for deployment
+    const memberSize = 3; // Change as needed
+    const chitAmount = ethers.utils.parseUnits('1', 'ether'); // 1 ether
 
-    console.log(
-        `Contract(ChitFund) with deployed to ${contract.target}`
-    );
+    // Get the contract factory
+    const ChethFundFactory = await ethers.getContractFactory('ChethFund');
+
+    // Deploy the contract
+    const chethFund = await ChethFundFactory.deploy(memberSize, chitAmount);
+
+    // Wait for the deployment to complete
+    await chethFund.deployed();
+
+    console.log(`ChethFund deployed to: ${chethFund.address}`);
 }
 
-main().catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-});
+// Error handling
+main()
+    .then(() => process.exit(0))
+    .catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });
