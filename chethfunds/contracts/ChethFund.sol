@@ -62,27 +62,51 @@ contract ChethFund {
     }
 
     function distributeFunds() public payable active allPaid {
+        
         require(msg.sender == contractManager, 'NOT_ALLOWED');
 
         uint balance = address(this).balance;
         uint commision = balance * 2 / 100;
-        uint amtToBeneficiary = balance - commision - currentBidAmount;        
-        uint dividend = currentBidAmount / memberSize;
-        currentBeneficiary.transfer(amtToBeneficiary);
-        emit Withdraw(currentBeneficiary, amtToBeneficiary);
+        uint amtToDistribute = balance - commision;
+        // uint amtToBeneficiary = balance - commision - currentBidAmount;        
+        // uint dividend = currentBidAmount / memberSize;
+        // currentBeneficiary.transfer(amtToBeneficiary);
+        // emit Withdraw(currentBeneficiary, amtToBeneficiary);
+
 
         treasurer.transfer(commision);
 
-        for(uint i = 0; i < paidMembersList.length; i++) {
-            paidMembersList[i].transfer(dividend);
-            paidMembers[paidMembersList[i]] = false;
+        if (currentBeneficiary == address(0)) {
+            uint dividend = amtToDistribute / memberSize;
+
+            for (uint i = 0; i < paidMembersList.length; i++) {
+                paidMembersList[i].transfer(dividend);
+                paidMembers[paidMembersList[i]] = false;
             }
 
+            emit DividendDistributed(dividend, remainingMonths);
+
+        }  else {
+
+            uint amtToBeneficiary = amtToDistribute - currentBidAmount;
+            uint dividend = currentBidAmount / memberSize;
+
+            currentBeneficiary.transfer(amtToBeneficiary);
+            emit Withdraw(currentBeneficiary, amtToBeneficiary);
+
+            for (uint i = 0; i < paidMembersList.length; i++) {
+                paidMembersList[i].transfer(dividend);
+                paidMembers[paidMembersList[i]] = false;
+            }
+
+            remainingMonths--;
+            emit DividendDistributed(dividend, remainingMonths);
+        }
+
         delete paidMembersList;
-        currentBeneficiary = payable (address(0));
+        currentBeneficiary = payable(address(0));
         currentBidAmount = 0;
-        remainingMonths--;
-        emit DividendDistributed(dividend, remainingMonths);
+
 
         if(remainingMonths == 0) {
             contractActive = false;
