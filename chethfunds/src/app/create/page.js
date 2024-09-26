@@ -9,23 +9,23 @@ const createRoom = () => {
     const memberSize = 5
     const chitAmount = 0.01
 
-    try {
-      const res = await fetch('/api/startchit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            memberSize,
-            chitAmount,
-          })
+    // try {
+    //   const res = await fetch('/api/startchit', {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //       },
+    //       body: JSON.stringify({
+    //         memberSize,
+    //         chitAmount,
+    //       })
           
-      })
-      const data = await res.json()
-      console.log(data)
-    } catch (error) {
-      console.error("Error creating room:", error);
-    }
+    //   })
+    //   const data = await res.json()
+    //   console.log(data)
+    // } catch (error) {
+    //   console.error("Error creating room:", error);
+    // }
   }
   return (
     <div>
