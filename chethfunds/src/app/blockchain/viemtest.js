@@ -4,6 +4,7 @@ import { ganache } from "./ganache";
 import { ViemClient, ViemContract } from "./viemc";
 import ChitFundJSON from "./contracts/ChitFund.json";
 // import StorageJSON from "./contracts/Storage.json";
+import { ChitFundInterface } from './chitfund_interface';
 
 const PRIVATE_KEY = '0xff2b5b94122182537f302af22d17ab060f975ba8a48f0b18c72daaafc2c9440a';
 // const API_URL = 'https://eth-sepolia.g.alchemy.com/v2/ThmK5GMa8cPgR5Sw9eLn4GhoFI5_51tM';
@@ -35,22 +36,26 @@ export async function chitfund_e2e({ chitAmount }) {
     // --------------------- Account Setup ---------------------------  
 
     //--------------------Deploy the Contract-------------------------
-    const factory = ViemContract.fromCompiledContract({ compiledContract: ChitFundJSON });
-    factory.connect({ client: memberClients.platform });
-    const { hash: deploymentHash, contract } = await factory.deploy({
-        params: [3n, parseEther(chitAmount)],
-    });
-    contract.connect({ client: memberClients.platform });
 
-    console.log('DEPLOYED_CONTRACT_HASH', deploymentHash);
-    console.log('DEPLOYED_CONTRACT_ADDRESS', contract.contractAddress)
-    const cfbal = await contract.read({ method: 'getBalance' });
+    const chitfund = await ChitFundInterface.createChitFund({ chitAmountInEth: chitAmount, memberSize: 3 });
+
+    // const factory = ViemContract.fromCompiledContract({ compiledContract: ChitFundJSON });
+    // factory.connect({ client: memberClients.platform });
+    // const { hash: deploymentHash, contract } = await factory.deploy({
+    //     params: [3n, parseEther(chitAmount)],
+    // });
+    // contract.connect({ client: memberClients.platform });
+
+    // console.log('DEPLOYED_CONTRACT_HASH', deploymentHash);
+    console.log('DEPLOYED_CONTRACT_ADDRESS', chitfund.contractAddress)
+
+    const cfbal = await chitfund.read({ method: 'getBalance' });
     console.log('INITIAL_CONTRACT_BALANCE', formatEther(cfbal))
     console.log('Contract Deployment Successful!');
     //--------------------Deploy the Contract-------------------------
 
     //-------------------Start Event Listeners-------------------------
-    contract.startListeningToEvents({
+    chitfund.startListeningToEvents({
         eventSignatures: [
             'event DividendDistributed(uint dividendAmount, uint remainingMonths)',
             'event ChitDeposited(address indexed member, uint amount)',
@@ -76,25 +81,29 @@ export async function chitfund_e2e({ chitAmount }) {
         //--------------------Fetch their Initial Balance-------------------------
 
         //--------------------One by One Send their ChitAmount-------------------
-        contract.connect({ client: memberClients.manas });
-        await contract.write({
-            method: 'depositChit',
-            valueInEth: chitAmount,
-        });
+
+        await ChitFundInterface.depositChitAmount({ chitfund, client: memberClients.manas, chitAmount });
+        // contract.connect({ client: memberClients.manas });
+        // await contract.write({
+        //     method: 'depositChit',
+        //     valueInEth: chitAmount,
+        // });
         console.log('DEPOSIT_COMPLETE: MANAS');
-        contract.connect({ client: memberClients.koushik });
-        await contract.write({
-            method: 'depositChit',
-            valueInEth: chitAmount,
-        });
-        console.log('DEPOSIT_COMPLETE: KOUSHIK');
-        contract.connect({ client: memberClients.somnath });
-        await contract.write({
-            method: 'depositChit',
-            valueInEth: chitAmount,
-        });
+        await ChitFundInterface.depositChitAmount({ chitfund, client: memberClients.koushik, chitAmount });
+        // contract.connect({ client: memberClients.koushik });
+        // await contract.write({
+        //     method: 'depositChit',
+        //     valueInEth: chitAmount,
+        // });
+        await ChitFundInterface.depositChitAmount({ chitfund, client: memberClients.somnath, chitAmount });
+        // console.log('DEPOSIT_COMPLETE: KOUSHIK');
+        // contract.connect({ client: memberClients.somnath });
+        // await contract.write({
+        //     method: 'depositChit',
+        //     valueInEth: chitAmount,
+        // });
         console.log('DEPOSIT_COMPLETE: SOMNATH');
-        contract.connect({ client: memberClients.platform }); //re-connect to platform
+        // contract.connect({ client: memberClients.platform }); //re-connect to platform
         //----------------------------------------------------------------------
 
         //--------------------Fetch their Balances again-------------------------
@@ -104,21 +113,24 @@ export async function chitfund_e2e({ chitAmount }) {
         console.log('POST_DEPOSTI_BALANCES(MSK):', [balanceM2, balanceK2, balanceS2]);
         //--------------------Fetch their Balances again-------------------------
 
-        let contractbal = await contract.read({ method: 'getBalance' });
+        let contractbal = await chitfund.read({ method: 'getBalance' });
         console.log('POST_DEPOSIT_CONTRACT_BALANCE:', formatEther(contractbal));
 
         //----------------------Simulate Auction------------------------
         const hb = (['manas', 'koushik', 'somnath'][month])
         const highestBidder = memberClients[hb];
         const highestBid = parseEther(String(Math.random() * Number(chitAmount) * 0.9))
-        contract.connect({ client: highestBidder });
+        // contract.connect({ client: highestBidder });
         console.log('HIGHEST_BIDDER', hb, 'WITH', formatEther(highestBid), 'ETH');
-        await contract.write({ method: 'bid', params: [highestBid] }); //SERVER_CALL
-        contract.connect({ client: memberClients.platform }); //re-connect to platform
+
+        await ChitFundInterface.finalizeBidAndDistributeFunds({ chitfund, client: highestBidder, bidAmount: highestBid });
+        // await contract.write({ method: 'bid', params: [highestBid] }); //SERVER_CALL
+
+        // contract.connect({ client: memberClients.platform }); //re-connect to platform
         //----------------------Simulate Auction------------------------
 
         //----------------------Distribute Funds (SERVER_CALL) ------------------------
-        await contract.write({ method: 'distributeFunds' }); //SERVER_CALL
+        // await contract.write({ method: 'distributeFunds' }); //SERVER_CALL
         //--------------------------------------------------------------
 
         //--------------------Fetch their Balances again-------------------------
@@ -131,18 +143,23 @@ export async function chitfund_e2e({ chitAmount }) {
 
         //Perform the Explanatory Mathematics
 
-        const commission = (contractbal * BigInt(2)) / 100n //2% commission
-        contractbal = contractbal - commission;
+        // const commission = (contractbal * BigInt(2)) / 100n //2% commission 
+        // contractbal = contractbal - commission;
 
-        const toBeneficiary = (contractbal - highestBid);
-        const amtSplit2All = parseEther(String(Number(formatEther(highestBid)) / 3));
+        // const toBeneficiary = (contractbal - highestBid);
+        // const amtSplit2All = parseEther(String(Number(formatEther(highestBid)) / 3));
 
-        console.log('INTERNAL_CALCULATIONS', {
-            commission: formatEther(commission),
-            amountSentToBidWinner: formatEther(toBeneficiary),
-            amtSplit2All: formatEther(amtSplit2All),
-        })
+        const icalcs = ChitFundInterface.getInternalCalculations({ contractBalance: formatEther(contractbal), highestBidInEth: formatEther(highestBid) })
+        const toBeneficiary = parseEther(String(icalcs['amountSentToBidWinner']));
+        const amtSplit2All = parseEther(String(icalcs['commonSplit']));
 
+
+        // console.log('INTERNAL_CALCULATIONS', {
+        //     commission: formatEther(commission),
+        //     amountSentToBidWinner: formatEther(toBeneficiary),
+        //     amtSplit2All: formatEther(amtSplit2All),
+        // })
+        console.log(icalcs);
 
         const _performBalAdd = (ob, amt) => Number(formatEther(parseEther(String(ob + Number(formatEther(amt))))));
 
@@ -165,60 +182,5 @@ export async function chitfund_e2e({ chitAmount }) {
     await simulateMonth(1);
     await simulateMonth(2);
 
-    contract.stopListeningToEvents();
+    chitfund.stopListeningToEvents();
 }
-
-// export async function viemtest() {
-//     const account = privateKeyToAccount(PRIVATE_KEY);
-
-//     let wc = createWalletClient({
-//         account,
-//         chain: ganache,
-//         transport: http(API_URL)
-//     })
-
-//     const viemClient = new ViemClient({
-//         walletClient: wc,
-//     });
-
-//     const addr = await viemClient.getClientAddress();
-//     console.log('Address', addr);
-
-
-//     const bal = await viemClient.getBalance({ mode: 'ether' });
-//     console.log(`\nBalance: = ${bal}ETH`);
-
-//     const factory = ViemContract.fromCompiledContract({
-//         compiledContract: ChitFundJSON,
-//     });
-//     factory.connect({ client: viemClient });
-
-//     const { hash: deploymentHash, contract: chitFundVC } = await factory.deploy({
-//         params: [3n, parseEther('0.0001')],
-//     });
-//     console.log('DEPLOYED_CONTRACT_HASH', deploymentHash);
-//     console.log('DEPLOYED_CONTRACT_ADDRESS', chitFundVC.contractAddress)
-
-//     //connect the newly created contract
-//     chitFundVC.connect({ client: viemClient });
-
-//     //get initial balance (READ)
-//     const cfbal = await chitFundVC.read({ method: 'getBalance' });
-//     console.log('CHIT_BALANCE', formatEther(cfbal));
-
-//     const txhash = await chitFundVC.write({
-//         method: 'depositChit',
-//         valueInEth: '0.0001',
-//     });
-//     console.log('TXHASH', txhash);
-
-//     const cfbal2 = await chitFundVC.read({ method: 'getBalance' });
-//     console.log('CHIT_BALANCE', formatEther(cfbal2));
-
-//     //read
-//     // const chitAmount = await chitFundVC.read({ method: 'chitAmount' });
-//     // console.log('CHIT_AMOUNT', formatEther(chitAmount));
-
-
-// }
-

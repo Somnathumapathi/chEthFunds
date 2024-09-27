@@ -100,7 +100,7 @@ export class ViemContract {
 
     connect({ client }) {
         this.walletClient = client.walletClient.extend(publicActions);
-        console.log('WalletClient connected Successfully!')
+        // console.log('WalletClient connected Successfully!')
     }
 
 
