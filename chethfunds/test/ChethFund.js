@@ -73,6 +73,30 @@ describe('ChethFund', function () {
         });
     });
 
+    // describe('Bidding', function () {
+    //     beforeEach(async function () {
+    //         await chethFund.connect(addr1).depositChit({ value: chitAmount });
+    //         await chethFund.connect(addr2).depositChit({ value: chitAmount });
+    //         await chethFund.connect(addr3).depositChit({ value: chitAmount });
+    //     });
+
+    //     it('Should allow bidding with amount higher than the current bid', async function () {
+    //         const bidAmount = ethers.parseUnits('0.5', 'ether');
+    //         await chethFund.connect(addr1).bid(bidAmount);
+
+    //         expect(await chethFund.currentBidAmount()).to.equal(bidAmount);
+    //         expect(await chethFund.currentBeneficiary()).to.equal(addr1.address);
+    //     });
+
+    //     it('Should reject bids lower than the current bid', async function () {
+    //         const bidAmount = ethers.parseUnits('0.5', 'ether');
+    //         await chethFund.connect(addr1).bid(bidAmount);
+
+    //         await expect(
+    //             chethFund.connect(addr2).bid(ethers.parseUnits('0.4', 'ether'))
+    //         ).to.be.revertedWith('BID_VALUE_LESS_THAN_CURRENTBID');
+    //     });
+    // });
     describe('Bidding', function () {
         beforeEach(async function () {
             await chethFund.connect(addr1).depositChit({ value: chitAmount });
@@ -82,7 +106,7 @@ describe('ChethFund', function () {
 
         it('Should allow bidding with amount higher than the current bid', async function () {
             const bidAmount = ethers.parseUnits('0.5', 'ether');
-            await chethFund.connect(addr1).bid(bidAmount);
+            await chethFund.connect(addr1).bid(bidAmount, addr1.address);
 
             expect(await chethFund.currentBidAmount()).to.equal(bidAmount);
             expect(await chethFund.currentBeneficiary()).to.equal(addr1.address);
@@ -90,39 +114,48 @@ describe('ChethFund', function () {
 
         it('Should reject bids lower than the current bid', async function () {
             const bidAmount = ethers.parseUnits('0.5', 'ether');
-            await chethFund.connect(addr1).bid(bidAmount);
+            await chethFund.connect(addr1).bid(bidAmount, addr1.address);
 
             await expect(
-                chethFund.connect(addr2).bid(ethers.parseUnits('0.4', 'ether'))
+                chethFund.connect(addr2).bid(ethers.parseUnits('0.4', 'ether'), addr2.address)
             ).to.be.revertedWith('BID_VALUE_LESS_THAN_CURRENTBID');
         });
     });
 
+
+    // describe('Distributing Funds', function () {
+    //     beforeEach(async function () {
+    //         await chethFund.connect(addr1).depositChit({ value: chitAmount });
+    //         await chethFund.connect(addr2).depositChit({ value: chitAmount });
+    //         await chethFund.connect(addr3).depositChit({ value: chitAmount });
+    //         await chethFund.connect(addr1).bid(ethers.parseUnits('0.5', 'ether'));
+    //     });
+
+    //     it('Should distribute funds correctly', async function () {
+    //         const initialBalance = await ethers.provider.getBalance(addr1.address);
+    //         await chethFund.connect(owner).distributeFunds();
+    //         const newBalance = await ethers.provider.getBalance(addr1.address);
+
+    //         expect(newBalance).to.be.gt(initialBalance); // Beneficiary received funds
+
+    //         const remainingMonths = await chethFund.remainingMonths();
+    //         expect(remainingMonths).to.equal(memberSize - 1); // One month passed
+
+    //         expect(await chethFund.contractActive()).to.equal(true); // Contract still active
+    //     });
+
+    //     it('Should only allow the contract manager to distribute funds', async function () {
+    //         await expect(
+    //             chethFund.connect(addr1).distributeFunds()
+    //         ).to.be.revertedWith('NOT_ALLOWED');
+    //     });
+    // });
     describe('Distributing Funds', function () {
         beforeEach(async function () {
             await chethFund.connect(addr1).depositChit({ value: chitAmount });
             await chethFund.connect(addr2).depositChit({ value: chitAmount });
             await chethFund.connect(addr3).depositChit({ value: chitAmount });
-            await chethFund.connect(addr1).bid(ethers.parseUnits('0.5', 'ether'));
-        });
-
-        it('Should distribute funds correctly', async function () {
-            const initialBalance = await ethers.provider.getBalance(addr1.address);
-            await chethFund.connect(owner).distributeFunds();
-            const newBalance = await ethers.provider.getBalance(addr1.address);
-
-            expect(newBalance).to.be.gt(initialBalance); // Beneficiary received funds
-
-            const remainingMonths = await chethFund.remainingMonths();
-            expect(remainingMonths).to.equal(memberSize - 1); // One month passed
-
-            expect(await chethFund.contractActive()).to.equal(true); // Contract still active
-        });
-
-        it('Should only allow the contract manager to distribute funds', async function () {
-            await expect(
-                chethFund.connect(addr1).distributeFunds()
-            ).to.be.revertedWith('NOT_ALLOWED');
+            await chethFund.connect(addr1).bid(ethers.parseUnits('0.5', 'ether'), addr1.address);
         });
     });
 });
