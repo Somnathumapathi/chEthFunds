@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '../../../../lib/supabaseClient';
+import {ethers} from 'ethers'
 
 const Auction = () => {
   const params = useParams();
@@ -11,6 +12,10 @@ const Auction = () => {
   const [seconds, setSeconds] = useState(20);
   const [auctionStarted, setAuctionStarted] = useState(false);
   const [winner, setWinner] = useState(null);
+  const [isManager, setIsManager] = useState(false)
+  const [account, setAccount] = useState("")
+  const [user, setUser] = useState()
+  let timerId;
 
   useEffect(() => {
     setRoomId(params.id);
@@ -22,14 +27,24 @@ const Auction = () => {
     if (bid <= bidAmount) return alert('Bid must be higher than current bid.');
 
     // Update the bid in the database
+    
     const { error } = await supabase
       .from('Room')
       .update({ bid_amount: bid })
       .eq('id', roomId);
+      resetTimer()
     if (error) {
       console.error('Error placing bid:', error);
     }
   };
+  const init = async () => {
+    const { data, error } = await supabase.from('Room').select().eq('id', params.id)
+    console.log(data[0])
+    if(data[0].contract_manager == account) {
+      setIsManager(true)
+    }
+    
+  }
 
   // Increment or decrement bid logic
   const handleIncrement = (type) => {
@@ -39,25 +54,106 @@ const Auction = () => {
       setMyBid(myBid - 1);
     }
   };
+ 
+  const  handleStartAuction = async () => {
+    setAuctionStarted(true)
+    console.log('auction started')
+    startTimer()
+    // const { data, error } = await supabase
+    // .from('Room')
+    // .update({ auction_started: true })
+  }
 
-  // Real-time listener for auction updates
+
+  const loadBlockchain = async () => {
+    const accounts  = await window.ethereum.request({method: 'eth_requestAccounts'})
+    const accAddress = ethers.getAddress(accounts[0])
+    console.log(accAddress)
+    setAccount(accAddress)
+    const { data, error } = await supabase.from('User').select().eq('wallet_address', account)
+    setUser(data[0])
+    console.log(data)
+    console.log(error)
+    const provider = new ethers.BrowserProvider(window.ethereum)
+    const network = await provider.getNetwork()
+
+    
+    window.ethereum.on('accountsChanged', async () => {
+      console.log('hi')
+      const accounts  = await window.ethereum.request({method: 'eth_requestAccounts'})
+    const accAddress = ethers.getAddress(accounts[0])
+    console.log(accAddress)
+    setAccount(accAddress)
+    const { data, error } = await supabase.from('User').select().eq('wallet_address', accAddress)
+    setUser(data[0])
+    console.log(data[0])
+    console.log(error)
+    console.log('hello')
+    })
+  }
+
+  const startTimer = async () => {
+    clearInterval(timerId); // Clear any existing timers
+    setSeconds(20);
+    timerId = setInterval(async () => {
+        setSeconds((prevSeconds) => {
+            if (prevSeconds < 1) {
+                clearInterval(timerId);
+                return prevSeconds;
+            }
+            
+            return prevSeconds - 1;
+        });
+        
+    }, 1000);
+    // await supabase.from('Room').update({bid_time: seconds}).eq('id', params.id)
+};
+const timer = async () => {
+  await supabase.from('Room').update({bid_time: seconds}).eq('id', params.id)
+}
+useEffect(() => {
+  timer()
+}, [seconds])
+
+const resetTimer = () => {
+    clearInterval(timerId); // Clear the current timer
+    setSeconds(20);
+};
+
+  useEffect(() => {
+    loadBlockchain()
+      }, [account])
+ 
+      useEffect(() => {
+        // const { data, error } = await supabase.from('User').select().eq('wallet_address', accAddress)
+        init()
+      })
   useEffect(() => {
     const subscription = supabase
-  .channel(`public:Room:id=eq.${roomId}`)
-  .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'Room', filter: `id=eq.${roomId}` }, (payload) => {
+  .channel(`public:Room:id=eq.${params.id}`)  
+  .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'Room', filter: `id=eq.${params.id}` }, (payload) => {
     // Handle updates
+  //  console.log("shanda",(payload))
+  //  console.log("shanada")
     const updatedRoom = payload.new;
+    if(updatedRoom.contractManager == account) {
+      setIsManager(true)
+    }
     if (updatedRoom.bid_amount) {
       setBidAmount(updatedRoom.bid_amount);
     }
     if (updatedRoom.auction_started) {
       setAuctionStarted(updatedRoom.auction_started);
     }
+    
     if (updatedRoom.winner) {
       setWinner(updatedRoom.winner);
     }
   })
   .subscribe();
+  // console.log("shanada")
+
+  // console.log(subscription)
 
     return () => {
       subscription.unsubscribe();
@@ -67,6 +163,8 @@ const Auction = () => {
   return (
     <div>
       <div className="border w-1/4 p-5 rounded-2xl">
+      {isManager ? <div onClick={handleStartAuction}>Start auction</div> : <div>No</div>}
+      
         <div className="flex flex-col justify-center items-center text-teal-500">
           <p>Current Bid: {bidAmount} ETH</p> <br />
           <p>Time Remaining: {seconds}s</p> <br />

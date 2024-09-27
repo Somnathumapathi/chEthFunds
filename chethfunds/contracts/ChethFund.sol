@@ -54,11 +54,11 @@ contract ChethFund {
         emit ChitDeposited(msg.sender, msg.value);
     }
 
-    function bid(uint _bidAmount) public active allPaid {
+    function bid(uint _bidAmount, address _beneficiary) public active allPaid {
         require(_bidAmount > currentBidAmount, 'BID_VALUE_LESS_THAN_CURRENTBID');
         currentBidAmount = _bidAmount;
-        currentBeneficiary = payable (msg.sender);
-        emit BeneficiaryUpdated(msg.sender, _bidAmount);        
+        currentBeneficiary = payable(_beneficiary);
+        emit BeneficiaryUpdated(_beneficiary, _bidAmount);        
     }
 
     function distributeFunds() public payable active allPaid {
