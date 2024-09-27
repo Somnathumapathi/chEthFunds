@@ -4,7 +4,7 @@ import { useWallet } from "@/app/Context/wallet"
 
 const ConnectButton = () => {
 
-    const {wallet, setWallet} = useWallet();
+    const { wallet, setWallet } = useWallet();
 
     const connection = async () => {
         const { ethereum } = window
@@ -15,11 +15,10 @@ const ConnectButton = () => {
         return account;
     }
 
-
-
     const connectWallet = async () => {
         connection().then(account => setWallet(ethers.getAddress(account)))
     }
+    
     return (
         <div>
             {wallet ? (
@@ -28,20 +27,20 @@ const ConnectButton = () => {
                         {wallet.slice(0, 7) + '...' + wallet.slice(38, 42)}
                     </span> */}
                     {/* <p className="" onClick={()=>connectWallet()}>{wallet.slice(0, 7) + '...' + wallet.slice(38, 42)}</p> */}
-                    <button className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800" onClick={()=>connectWallet()}>
-<span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
-{wallet.slice(0, 7) + '...' + wallet.slice(38, 42)}
-</span>
-</button>
+                    <button className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800" onClick={() => connectWallet()}>
+                        <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+                            {wallet.slice(0, 7) + '...' + wallet.slice(38, 42)}
+                        </span>
+                    </button>
                 </>
             ) : (
                 <>
                     {/* <button className='bg-accent px-4 py-1 rounded-lg absolute top-20 right-20' onClick={()=>connectWallet()}>Connect Wallet</button> */}
                     <button className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-500 to-pink-500 group-hover:from-purple-500 group-hover:to-pink-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-purple-200 dark:focus:ring-purple-800" onClick={connectWallet}>
-                    <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
-                        Connect
-                    </span>
-                </button>
+                        <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+                            Connect
+                        </span>
+                    </button>
                 </>
             )}
         </div>
