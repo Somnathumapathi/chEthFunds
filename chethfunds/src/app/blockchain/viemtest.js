@@ -16,8 +16,8 @@ export async function chitfund_e2e({ chitAmount }) {
     // --------------------- Account Setup ---------------------------
     const members = {
         manas: '0x2c3f4e3858c1bade5edbfd770f9cb9fe121ffcaafe7b237d1c9d754ad4204949',
-        koushik: '0x6d9348b9dd52bf89c0cc3df21173c01bf448c860f9a217cf19773563d47a64a0',
-        somnath: '0x51e0f369ab507c1f4fb48fb9dd3146326fd36019b1b402af1e0b9932c9f82660',
+        koushik: '0xbb65b54774c62dc3643fdbbb31c8578bda340b4f52b87edf1a649a8cdfa98024',
+        somnath: '0xf3bbcd6d602f391eaafb267320d3b045dca4251c64699a327713463b7665ab81',
         platform: '0xff2b5b94122182537f302af22d17ab060f975ba8a48f0b18c72daaafc2c9440a', //BLANKPOINT's PVK
     }
     const _createViemClient = (privateKey) => new ViemClient({

@@ -67,7 +67,7 @@ export class ChitFundInterface {
         });
         contract.connect({ client: platformClient })
         console.log('DEPLOYED_CONTRACT_HASH', deploymentHash);
-        console.log('DEPLOYED_CONTRACT_ADDRESS', contract.contractAddress)
+        // console.log('DEPLOYED_CONTRACT_ADDRESS', contract.contractAddress)
         return contract;
     }
 
