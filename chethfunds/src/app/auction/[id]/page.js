@@ -64,6 +64,10 @@ const Auction = () => {
     // .update({ auction_started: true })
   }
 
+  const finishBid = async () => {
+    await supabase.from('Room').update({winners: [winner]}).eq('id', params.id)
+  
+  }
 
   const loadBlockchain = async () => {
     const accounts  = await window.ethereum.request({method: 'eth_requestAccounts'})
@@ -99,6 +103,7 @@ const Auction = () => {
         setSeconds((prevSeconds) => {
             if (prevSeconds < 1) {
                 clearInterval(timerId);
+                finishBid()
                 return prevSeconds;
             }
             
@@ -110,6 +115,8 @@ const Auction = () => {
 };
 const timer = async () => {
   await supabase.from('Room').update({bid_time: seconds}).eq('id', params.id)
+  // setSeconds()
+  // console.log(data)
 }
 useEffect(() => {
   timer()
@@ -130,7 +137,7 @@ const resetTimer = () => {
       })
   useEffect(() => {
     const subscription = supabase
-  .channel(`public:Room:id=eq.${params.id}`)  
+  .channel(`public:Room:id=eq.${params.id}`)
   .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'Room', filter: `id=eq.${params.id}` }, (payload) => {
     // Handle updates
   //  console.log("shanda",(payload))
@@ -139,6 +146,7 @@ const resetTimer = () => {
     if(updatedRoom.contractManager == account) {
       setIsManager(true)
     }
+    setSeconds(updatedRoom.bid_time)
     if (updatedRoom.bid_amount) {
       setBidAmount(updatedRoom.bid_amount);
     }
