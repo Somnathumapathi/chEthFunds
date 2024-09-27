@@ -17,11 +17,11 @@ const ConnectButton = (props) => {
 
     window.ethereum?.on('accountsChanged',async()=>{
         const newAcc = await window.ethereum.request({method: 'eth_requestAccounts'})
-        setWallet(newAcc[0])
+        setWallet(ethers.getAddress(newAcc[0]))
     })
 
     const connectWallet = async () => {
-        connection().then(account => setWallet(account))
+        connection().then(account => setWallet(ethers.getAddress(account)))
     }
     return (
         <div>
