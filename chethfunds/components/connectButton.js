@@ -2,7 +2,7 @@ import React from "react"
 import { ethers } from 'ethers'
 import { useWallet } from "@/app/Context/wallet"
 
-const ConnectButton = (props) => {
+const ConnectButton = () => {
 
     const {wallet, setWallet} = useWallet();
 
@@ -15,10 +15,7 @@ const ConnectButton = (props) => {
         return account;
     }
 
-    window.ethereum?.on('accountsChanged',async()=>{
-        const newAcc = await window.ethereum.request({method: 'eth_requestAccounts'})
-        setWallet(ethers.getAddress(newAcc[0]))
-    })
+
 
     const connectWallet = async () => {
         connection().then(account => setWallet(ethers.getAddress(account)))

@@ -69,7 +69,7 @@ const goToRoom = (id) => {
     <div className="flex flex-col items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-gradient-to-br from-background to-black">
       <h1 className="text-3xl font-semibold bg-clip-text bg-gradient-to-r from-primary to-accent text-transparent">ChETH FUNDS</h1>
       <ConnectButton />
-      <p>{user && user.name != null ? user.name : "no user"}</p>
+      <p className="absolute top-32 left-[85%]">{user && user.name != null ? user.name : "no user"}</p>
       <div className="flex flex-row items-center justify-center gap-12 w-2/3">
         <div className={card}>
           <p className="card-header font-semibold text-xl pb-2 text-accent">Join a room</p>
