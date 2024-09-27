@@ -3,18 +3,24 @@ import React, { useEffect, useState } from 'react'
 import ConnectButton from '../../../components/connectButton';
 import { useWallet } from '../Context/wallet';
 import { useRouter } from 'next/navigation';
+import { supabase } from '../../../lib/supabaseClient';
+import { useSearchParams } from 'next/navigation'
 
 const join = () => {
     const [roomId, setRoomId] = useState('')
-    const {wallet} = useWallet();
+    const {wallet} = useWallet();   
     const router = useRouter();
+    const searchParams = useSearchParams()
 
     useEffect(() => {
         console.log(wallet)
+       
+        const id = searchParams.get('id')
+        setRoomId(id)
     }, [])
 
 
-    const joinRoom = (e) => {
+    const joinRoom = async (e) => {
         e.preventDefault();
         if (!roomId) {
             alert("Please enter room ID");
@@ -23,7 +29,24 @@ const join = () => {
             alert("Connect your wallet!!")
             return;
         }
-        // TODO: Handle join
+        const {data, error} = await supabase.from('Room').select().eq('id', roomId)
+        // roomd = data[0]
+        const room_mem = data[0].members
+        if(room_mem.includes(wallet)) {
+            alert('Already a member')
+            return;
+        }
+        if(room_mem.length == data[0].member_size-1) {
+            //deploy contract
+        }
+        if(room_mem.length == data[0].member_size) {
+            alert('Room is full')
+            return
+        }
+        console.log(room_mem)
+        room_mem.push(wallet)
+        await supabase.from('Room').update({'members': room_mem}).eq('id', roomId)
+// await supabase.from('Room').update({members: })
     }
 
     return (

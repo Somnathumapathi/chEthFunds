@@ -53,7 +53,7 @@ contract ChethFund {
 
         emit ChitDeposited(msg.sender, msg.value);
     }
-
+    //bidding. but now handled in fe this is used for final bid.
     function bid(uint _bidAmount, address _beneficiary) public active allPaid {
         require(_bidAmount > currentBidAmount, 'BID_VALUE_LESS_THAN_CURRENTBID');
         currentBidAmount = _bidAmount;

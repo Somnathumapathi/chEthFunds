@@ -12,6 +12,7 @@ export default function Home() {
   const router = useRouter()
 
   const [account, setAccount] = useState("")
+  const [myRooms, setMyRooms] = useState()
   const [user, setUser] = useState()
 
   const { wallet } = useWallet();
@@ -25,10 +26,18 @@ export default function Home() {
       console.log(error)
     }
     loadUser()
+    getRooms()
   }, [wallet])
 
-
-
+const getRooms = async () => {
+  const { data, error } = await supabase.from('Room').select('*').contains('members', [wallet])
+  console.log(data[0])
+  setMyRooms(data)
+}
+const goToRoom = (id) => {
+  console.log(id)
+  router.push(`/room/${id}`)
+}
   // const loadBlockchain = async () => {
   //   // const accounts  = await window.ethereum.request({method: 'eth_requestAccounts'})
   //   // const accAddress = ethers.getAddress(accounts[0])
@@ -73,6 +82,12 @@ export default function Home() {
           <button className="rounded-lg bg-accent px-4 py-1 mt-3" onClick={() => router.push("/create")}>CREATE</button>
         </div>
       </div>
+      <div>My rooms</div>
+      {myRooms?.map((mr) => {
+        return (
+          <div onClick={()=>goToRoom(mr.id)}>{mr.id}</div>
+        )
+      })}
     </div>
   );
 }
