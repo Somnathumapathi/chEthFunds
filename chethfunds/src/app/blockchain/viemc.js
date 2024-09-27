@@ -1,13 +1,15 @@
 import { decodeEventLog, formatEther, getAddress, getContract, parseAbi, parseEther, publicActions, toHex } from "viem";
 
+const API_URL = 'https://eth-sepolia.g.alchemy.com/v2/ThmK5GMa8cPgR5Sw9eLn4GhoFI5_51tM';
+
 class ViemGlobals {
-    static eventUnsubscriberList: any[] = [];
+    static eventUnsubscriberList = [];
 }
 
-class ViemClient {
+export class ViemClient {
     walletClient = null;
 
-    constructor({ walletClient }: { walletClient: any }) {
+    constructor({ walletClient }) {
         this.walletClient = walletClient.extend(publicActions);
     }
 
@@ -22,7 +24,7 @@ class ViemClient {
 
     }
 
-    async sendTransaction({ from, to, valueInEth }: { from: string, to: string, valueInEth: string }) {
+    async sendTransaction({ from, to, valueInEth }) {
         this._handleGuardrails();
         try {
             if (from === undefined) {
@@ -41,20 +43,20 @@ class ViemClient {
         }
     }
 
-    async getBalance({ mode = 'wei' }: { mode: string }) {
+    async getBalance({ mode = 'wei' } = {}) {
         this._handleGuardrails();
         try {
             const bal = await this.walletClient.getBalance({
-                address: this.getClientAddress(),
+                address: await this.getClientAddress(),
             });
-            if (bal == 'ether') return Number(formatEther(bal));
+            if (mode == 'ether') return Number(formatEther(bal));
             else return bal;
         } catch (error) {
             throw new Error(`CLIENT_GETBALANCEINWEI_EXCEPTION: ${error}`);
         }
     }
 
-    async signMessage({ message }: { message: string }) {
+    async signMessage({ message }) {
         this._handleGuardrails();
         try {
             const account = await this.getClientAddress();
@@ -73,36 +75,36 @@ class ViemClient {
     }
 }
 
-class ViemContract {
+export class ViemContract {
     contractAddress = null;
     walletClient = null;
     abi = null;
     bytecode = null;
     contractName = null;
 
-    static fromCompiledContract({ compiledContract, contractName, deployedAddress = null }: { compiledContract: any, contractName: string, deployedAddress: string | null }) {
-        const { abi, bin } = compiledContract["contracts"][`contracts/${contractName}.sol:${contractName}`]
+    static fromCompiledContract({ compiledContract, deployedAddress = null }) {
         return new ViemContract({
-            abi,
-            bin,
-            deployedAddress,
-            contractName,
+            abi: compiledContract['abi'],
+            bin: compiledContract['bytecode'],
+            deployedAddress: deployedAddress,
+            contractName: compiledContract['contractName']
         });
     }
 
     constructor({ abi, bin, deployedAddress, contractName }) {
         this.abi = abi;
-        this.bytecode = `0x${bin}`;
+        this.bytecode = bin;
         this.contractAddress = deployedAddress;
         this.contractName = contractName;
     }
 
-    connect({ client }: { client: ViemClient }) {
+    connect({ client }) {
         this.walletClient = client.walletClient.extend(publicActions);
         console.log('WalletClient connected Successfully!')
     }
 
-    async deploy({ params = [], valueInEth = undefined }: { params: [], valueInEth: string | undefined }): Promise<{ hash: any, contract: ViemContract }> {
+
+    async deploy({ params = [], valueInEth = undefined }) {
         this._handleGuardrails();
         try {
             const hash = await this.walletClient.deployContract({
@@ -110,14 +112,15 @@ class ViemContract {
                 bytecode: this.bytecode,
                 args: [...params], // any number should be in BigInt. like 125n
                 value: valueInEth ? parseEther(valueInEth) : undefined,
-                gas: 5_000_000,
             })
-            const { contractAddress } = await this.walletClient.getTransactionReceipt({ hash });
+            // console.log('TXHASH', hash);
+            const { contractAddress } = await this.walletClient.waitForTransactionReceipt({ hash });
+            // console.log('CONTRACT_ADDRESS', contractAddress);
             if (!contractAddress) throw new Error('CONTRACT_NOT_DEPLOYED');
             const contract = new ViemContract({
                 abi: this.abi,
-                bin: this.bytecode.substring(2),
-                deployedAddress: this.contractAddress,
+                bin: this.bytecode,
+                deployedAddress: contractAddress,
                 contractName: this.contractName,
             })
             return { hash, contract };
@@ -126,7 +129,7 @@ class ViemContract {
         }
     }
 
-    async read({ method }: { method: string }) {
+    async read({ method }) {
         this._handleGuardrails();
         try {
             const data = await this.walletClient.readContract({
@@ -140,7 +143,7 @@ class ViemContract {
         }
     }
 
-    async readStorageSlot({ slot }: { slot: number }) {
+    async readStorageSlot({ slot }) {
         this._handleGuardrails();
         try {
             const x = await this.walletClient.getStorageAt({
@@ -153,7 +156,7 @@ class ViemContract {
         }
     }
 
-    async write({ method, params = [], value = undefined }: { method: string, params: [], value: any }) {
+    async write({ method, params = [], valueInEth = undefined }) {
         this._handleGuardrails();
         try {
             const hash = await this.walletClient.writeContract({
@@ -161,7 +164,7 @@ class ViemContract {
                 abi: this.abi,
                 functionName: method,
                 args: [...params],
-                value: value,
+                value: valueInEth ? parseEther(valueInEth) : undefined,
             })
             const txHash = await this.walletClient.waitForTransactionReceipt({ hash: hash });
             return txHash;
@@ -170,7 +173,7 @@ class ViemContract {
         }
     }
 
-    async getAllEvents({ event }: { event: string }) {
+    async getAllEvents({ event }) {
         this._handleGuardrails();
         try {
             const logs = await this.walletClient.getContractEvents({
@@ -184,42 +187,63 @@ class ViemContract {
         }
     }
 
-    startListeningToEvent = (
-        { eventDefinition, callback, indexedArguments = undefined }:
-            {
-                eventDefinition: string,
-                callback: ({ eventName, args }: { eventName: undefined; args: readonly unknown[] | undefined }) => void
-                indexedArguments: {} | undefined,
-            }
-    ) => {
+    startListeningToEvents = ({ eventSignatures, callback }) => {
         this._handleGuardrails();
         try {
-            const eventName = eventDefinition.substring(6, eventDefinition.indexOf('('));
-            const unwatch = this.walletClient.watchContractEvent({
-                address: this.contractAddress,
-                abi: this.abi,
-                eventName: eventName,
-                args: indexedArguments !== undefined ? { ...indexedArguments } : undefined,
+            const unwatch = this.walletClient.watchEvent({
+                events: parseAbi(eventSignatures),
                 onLogs: logs => {
                     const parsedData = decodeEventLog({
-                        abi: parseAbi([eventDefinition]),
+                        abi: parseAbi(eventSignatures.filter((z) => z.includes(logs[0].eventName))),
                         data: logs[0].data,
                         topics: logs[0].topics,
                         strict: false
                     });
-                    callback(parsedData);
+                    callback(logs[0].eventName, parsedData);
                 }
-            });
+            })
             ViemGlobals.eventUnsubscriberList.push({
                 contract: this.contractAddress,
                 dispose: unwatch,
             });
-            console.log(`Started Listening to ${eventName} event`);
-        } catch (error) {
-            throw new Error(`STARTLISTENINGTOEVENT_EXCEPTION: ${error}`);
-        }
+            console.log(`Started Listening Events!`);
 
+        } catch (error) {
+            throw new Error(`STARTLISTENINGTOEVENTS_EXCEPTION: ${error}`);
+        }
     }
+
+    // startListeningToEvent = (
+    //     { eventDefinition, callback, indexedArguments = undefined }
+    // ) => {
+    //     this._handleGuardrails();
+    //     try {
+    //         const eventName = eventDefinition.substring(6, eventDefinition.indexOf('('));
+    //         const unwatch = this.walletClient.watchContractEvent({
+    //             address: this.contractAddress,
+    //             abi: this.abi,
+    //             eventName: eventName,
+    //             args: indexedArguments !== undefined ? { ...indexedArguments } : undefined,
+    //             onLogs: logs => {
+    //                 const parsedData = decodeEventLog({
+    //                     abi: parseAbi([eventDefinition]),
+    //                     data: logs[0].data,
+    //                     topics: logs[0].topics,
+    //                     strict: false
+    //                 });
+    //                 callback(parsedData);
+    //             }
+    //         });
+    //         ViemGlobals.eventUnsubscriberList.push({
+    //             contract: this.contractAddress,
+    //             dispose: unwatch,
+    //         });
+    //         console.log(`Started Listening to ${eventName} event`);
+    //     } catch (error) {
+    //         throw new Error(`STARTLISTENINGTOEVENT_EXCEPTION: ${error}`);
+    //     }
+
+    // }
 
     stopListeningToEvents = async () => {
         this._handleGuardrails();
@@ -235,6 +259,40 @@ class ViemContract {
             throw new Error(`STOPLISTENINGTOEVENTS_EXCEPTION: ${error}`);
         }
     }
+
+    // async _fetchTransactionReceipt({ hash }) {
+
+    //     const _get = async () => {
+    //         const response = await fetch(API_URL, {
+    //             method: 'POST',
+    //             headers: {
+    //                 'accept': 'application/json',
+    //                 'content-type': 'application/json',
+    //             },
+    //             body: JSON.stringify({
+    //                 id: 1,
+    //                 jsonrpc: '2.0',
+    //                 method: 'eth_getTransactionReceipt',
+    //                 params: [
+    //                     hash
+    //                 ],
+    //             }),
+    //         });
+
+    //         if (!response.ok) {
+    //             throw new Error(`fetchTransactionReceipt: HTTP error! status: ${response.status}`);
+    //         }
+    //         const data = await response.json();
+    //         return data['result'];
+    //     }
+
+    //     while (true) {
+    //         const z = await _get();
+    //         if (z != null) return z;
+    //         await new Promise(r => setTimeout(r, 1000));
+    //         console.log('retrying to fetch TXReceipt');
+    //     }
+    // }
 
     _handleGuardrails() {
         if (this.abi === null || this.bytecode == null) throw new Error('CONTRACT_UNINITIALIZED');

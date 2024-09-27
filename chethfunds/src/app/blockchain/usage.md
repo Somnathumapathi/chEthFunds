@@ -38,7 +38,6 @@ const {txHash, txData} = viemClient.sendTransaction({
 //Deploy a Contract from the ClientSide
 const ChitFundVCFactory = ViemConract.fromCompiledContract({
 	compiledContract: chitfundContract,
-	contractName: 'ChitFund',
 })
 ChitFundVCFactory.connect({client: viemClient});
 const {deploymentHash, chitFundVC} = await ChitFundVCFactory.deploy({
