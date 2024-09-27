@@ -5,6 +5,7 @@ import { useWallet } from '../Context/wallet';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabaseClient';
 import { useSearchParams } from 'next/navigation'
+import { ChitFundInterface } from '../blockchain/chitfund_interface';
 
 const join = () => {
     const [roomId, setRoomId] = useState('')
@@ -38,6 +39,9 @@ const join = () => {
         }
         if(room_mem.length == data[0].member_size-1) {
             //deploy contract
+            const chitFund = await ChitFundInterface.createChitFund({ chitAmountInEth: String(data[0].chit_amount), memberSize: data[0].member_size })
+            console.log(chitFund.contractAddress)           
+await supabase.from('Room').update({contract_address: chitFund.contractAddress}).eq('id', roomId)
         }
         if(room_mem.length == data[0].member_size) {
             alert('Room is full')
