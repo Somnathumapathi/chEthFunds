@@ -10,16 +10,18 @@ import React, { useEffect, useState } from 'react'
 import { useWallet } from '../Context/wallet';
 import ConnectButton from '../../../components/connectButton';
 import { useRouter } from 'next/navigation';
+import { supabase } from '../../../lib/supabaseClient';
 
 const create = () => {
     const [memberSize, setMemberSize] = useState()
     const [chitAmount, setChitAmount] = useState()
+    const { wallet } = useWallet();
 
     const router = useRouter();
 
-    const { wallet } = useWallet()
+    // const { wallet } = useWallet()
 
-    const createRoom = (e) => {
+    const createRoom = async (e) => {
         e.preventDefault();
         if (!memberSize || !chitAmount) {
             alert("Enter all data!")
@@ -27,6 +29,18 @@ const create = () => {
         } if (!wallet) {
             return alert("Connect wallet!!")
         }
+        const { data , error} = await supabase.from('Room').insert({
+member_size: memberSize,
+months: memberSize,
+contract_address : '',
+contract_manager: wallet,
+chit_amount: chitAmount,
+chit_value: chitAmount*memberSize,
+members: [wallet],
+bid_amount: 0
+        }).select()
+        console.log(data)
+alert(`This is the room number ${data[0].id}`)
         // TODO: Handle creation of new Chit Fund
     }
 
