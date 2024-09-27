@@ -62,7 +62,7 @@ const Auction = () => {
   const handleStartAuction = async () => {
     setAuctionStarted(true)
     // console.log('auction started')
-    const {error} = await supabase.from("Room").update({active: true});
+    const {error} = await supabase.from("Room").update({auction_active: true});
     setAuctionStarted(true)
     startTimer()
     // const { data, error } = await supabase
@@ -137,8 +137,8 @@ const Auction = () => {
         if (updatedRoom.bid_amount) {
           setBidAmount(updatedRoom.bid_amount);
         }
-        if (updatedRoom.active) {
-          setAuctionStarted(updatedRoom.active);
+        if (updatedRoom.auction_active) {
+          setAuctionStarted(updatedRoom.auction_active);
         }
         // if (updatedRoom.currentWinner) {
         
