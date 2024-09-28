@@ -1,20 +1,18 @@
 import ChitFundJSON from "../../../artifacts/contracts/ChethFund.sol/ChethFund.json";
 const API_URL = 'https://f596-14-195-8-78.ngrok-free.app';
-import {hardhat} from "viem/chains";
-// import { ganache } from "./ganache";
+// import { hardhat } from "viem/chains";
+import { ganache } from "./ganache";
 import { ViemClient, ViemContract } from "./viemc";
 import { createWalletClient, formatEther, http, parseEther, publicActions, getContract, custom } from "viem";
 import { privateKeyToAccount } from "viem/accounts"
 import chitfund from "../Context/chitfund";
 
 
- 
-
 //ChETHFund's own private client
 const platformClient = new ViemClient({
     walletClient: createWalletClient({
-        account: privateKeyToAccount('0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'),
-        chain: hardhat,
+        account: privateKeyToAccount('0xff2b5b94122182537f302af22d17ab060f975ba8a48f0b18c72daaafc2c9440a'),
+        chain: ganache,
         transport: http(process.env.NEXT_PUBLIC_API_URL)
     })
 },);
@@ -23,16 +21,16 @@ export class ChitFundInterface {
 
 
 
-    static createMetaMaskClient = async ({wallet}) => {
-       
+    static createMetaMaskClient = async ({ wallet }) => {
+
         const { ethereum } = window
         if (!ethereum) return alert("Please install MetaMask!")
         // const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
         // const account = accounts[0]
         return new ViemClient({
             walletClient: createWalletClient({
-                account:wallet,
-                chain: hardhat,
+                account: wallet,
+                chain: ganache,
                 transport: custom(ethereum),
             }),
         })
@@ -56,11 +54,11 @@ export class ChitFundInterface {
         return Number(formatEther(cv))
     }
 
-    static getChitAmount = async ({chitfund}) => {
+    static getChitAmount = async ({ chitfund }) => {
         chitfund.connect({ client: platformClient });
         const cfa = await chitfund.read({ method: 'chitAmount' });
         return Number(formatEther(cfa))
-        }
+    }
 
 
     static isContractActive = async ({ chitfund }) => {
@@ -71,13 +69,13 @@ export class ChitFundInterface {
 
     static getPaidMembersList = async ({ chitfund }) => {
         // try {
-            chitfund.connect({ client: platformClient });
+        chitfund.connect({ client: platformClient });
         const paidMembersList = await chitfund.read({ method: 'paidMembersList' });
         return paidMembersList;
         // } catch (error) {
         //     console.log(error);
         // }
-        
+
     }
 
     static getInternalCalculations = ({ contractBalance, highestBidInEth }) => {
@@ -105,7 +103,7 @@ export class ChitFundInterface {
         return contract;
     }
 
-    
+
     static getChitFundFromContractAddress = async ({ contractAddress }) => {
         const factory = ViemContract.fromCompiledContract({ compiledContract: ChitFundJSON, deployedAddress: contractAddress });
         factory.connect({ client: platformClient });
@@ -124,29 +122,29 @@ export class ChitFundInterface {
     static finalizeBidAndDistributeFunds = async ({ chitfund, client, bidAmount }) => {
         chitfund.connect({ client: platformClient }); //connect the current client to the provided contract
         const clientAddr = await client.getClientAddress();
-        await chitfund.write({ method: 'bid', params: [parseEther(bidAmount) , clientAddr] });
+        await chitfund.write({ method: 'bid', params: [parseEther(bidAmount), clientAddr] });
         chitfund.connect({ client: platformClient });
         await chitfund.write({ method: 'distributeFunds' });
     }
 
-    static getBlockchainData = async ()=> {
+    static getBlockchainData = async () => {
         // const client = await ChitFundInterface.createMetaMaskClient()
         // setClient(client)
-        
-        const chitfund = await ChitFundInterface.getChitFundFromContractAddress({contractAddress: roomData.contract_address})
+
+        const chitfund = await ChitFundInterface.getChitFundFromContractAddress({ contractAddress: roomData.contract_address })
         // setChitFund(ctfund)
         // console.log(ctfund)
-        const remainingMonths = await ChitFundInterface.getRemainingMonths({chitfund})
+        const remainingMonths = await ChitFundInterface.getRemainingMonths({ chitfund })
         // console.log(rm)
         // setRemainingMonths(rm)
-        const balance = await ChitFundInterface.getChitBalance({chitfund})
+        const balance = await ChitFundInterface.getChitBalance({ chitfund })
         // console.log(bal)
         // setBalance(bal)
-        const chitValue = await ChitFundInterface.getChitValue({chitfund})
+        const chitValue = await ChitFundInterface.getChitValue({ chitfund })
         // setChitValue(chitval)
-        const chitAmount = await ChitFundInterface.getChitAmount({chitfund})
+        const chitAmount = await ChitFundInterface.getChitAmount({ chitfund })
         // setChitAmount(chitAmt)
-return ({ chitfund, remainingMonths, balance, chitValue, chitAmount})
+        return ({ chitfund, remainingMonths, balance, chitValue, chitAmount })
         // const pdm = await ChitFundInterface.getPaidMembersList({chitfund:ctfund})
         // setPaidMembersList(pdm)
 
