@@ -50,17 +50,17 @@ export default function Home() {
       {/* <p className="absolute top-32 left-[85%]">{user && user.name != null ? user.name : "no user"}</p> */}
       <div className="flex flex-row min-h-[50vh] items-center justify-center gap-12 w-5/6">
         <div className={card}>
-          <p className="card-header text-2xl font-bold mb-2 text-transparent text-gray-200">Join a room</p>
+          <p className="card-header text-2xl font-bold mb-2 text-transparent text-white">Join a room</p>
           <p className="text-center text-gray-400 mb-4">Enter the ID of the Chit Fund room given to you and join the Chit Fund.</p>
           <button className="px-4 py-1 m-2 inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-md group bg-gradient-to-br from-purple-600 to-pink-600 hover:text-white dark:text-white" onClick={() => router.push("/join")}>JOIN</button>
         </div>
         <div className={card}>
-          <p className="card-header text-2xl font-bold mb-2 text-transparent text-gray-200">Create a room</p>
+          <p className="card-header text-2xl font-bold mb-2 text-transparent text-white">Create a room</p>
           <p className="text-center text-gray-400 mb-4">Enter the details required for creating a new Chit Fund and share the generated ID with the willing participants.</p>
           <button className="px-4 py-1 m-2 inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-md group bg-gradient-to-br from-purple-600 to-pink-600 hover:text-white dark:text-white" onClick={() => router.push("/create")}>CREATE</button>
         </div>
         <div className={card}>
-          <p className="card-header text-2xl font-bold mb-2 text-transparent text-gray-200">My rooms</p>
+          <p className="card-header text-2xl font-bold mb-2 text-transparent text-white">My rooms</p>
           <p className="text-center text-gray-400 mb-4">View all the chitfunds you are in.</p>
           <button className="px-4 py-1 m-2 inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-md group bg-gradient-to-br from-purple-600 to-pink-600 hover:text-white dark:text-white" onClick={() => router.push("/room")}>MY ROOMS</button>
         </div>

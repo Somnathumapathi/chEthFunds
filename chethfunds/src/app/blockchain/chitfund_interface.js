@@ -42,6 +42,12 @@ export class ChitFundInterface {
         return Number(formatEther(cfbal))
     }
 
+    static getMemberCount = async ({ chitfund }) => {
+        chitfund.connect({ client: platformClient });
+        const mc = await chitfund.read({ method: 'memberSize' });
+        return mc
+    }
+
     static getRemainingMonths = async ({ chitfund }) => {
         chitfund.connect({ client: platformClient });
         const cfbal = await chitfund.read({ method: 'remainingMonths' });
