@@ -19,7 +19,7 @@ const Auction = () => {
   const [isManager, setIsManager] = useState(false)
   const [currentWinner, setCurrentWinner] = useState(null)
   const [user, setUser] = useState()
-  const [displayCalculations, setDisplayCalculations] = useState(true)
+  const [displayCalculations, setDisplayCalculations] = useState(false)
   const [chitfund, setChitFund] = useState()
   const [balance, setBalance] = useState()
   const [finalBid, setFinalBid] = useState()
@@ -112,7 +112,7 @@ const Auction = () => {
     await supabase.from('Room').update({ winners: winners, bid_amount: 0, bid_time: 0, currentWinner: null, months: monthsRem }).eq('id', params.id)
     // setAuctionStarted(false)
     setMyBid(0)
-    const calcs = ChitFundInterface.getInternalCalculations({ contractBalance: balance, highestBidInEth: ethers.parseEther(String(finalBid)) })
+    const calcs = ChitFundInterface.getInternalCalculations({ contractBalance: balance, highestBidInEth: ethers.parseEther(String(data[0].bid_amount)) })
     setCalculations(calcs)
     setTimeout(() => {
       setDisplayCalculations(true)
@@ -159,18 +159,20 @@ const Auction = () => {
     // const { data, error } = await supabase.from('User').select().eq('wallet_address', accAddress)
     init()
   }, [])
-  useEffect(async () => {
-    await getBlockchainData();
+  useEffect(() => {
+    getBlockchainData();
   }, [])
 
   const getBlockchainData = async () => {
     // const client = await ChitFundInterface.createMetaMaskClient()
     // setClient(client)
-    const chitAmt = await ChitFundInterface.getChitAmount({ chitfund: ctfund })
-    setChitAmount(chitAmt)
 
     const ctfund = await ChitFundInterface.getChitFundFromContractAddress({ contractAddress: roomData?.contract_address })
     setChitFund(ctfund)
+
+    const chitAmt = await ChitFundInterface.getChitAmount({ chitfund: ctfund })
+    setChitAmount(chitAmt)
+
     console.log(ChitFundInterface)
     const bal = await ChitFundInterface.getChitBalance({ chitfund: ctfund })
     // console.log(bal)

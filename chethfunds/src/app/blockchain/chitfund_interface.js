@@ -1,6 +1,6 @@
 import ChitFundJSON from "../../../artifacts/contracts/ChethFund.sol/ChethFund.json";
 const API_URL = 'https://f596-14-195-8-78.ngrok-free.app';
-// import { hardhat } from "viem/chains";
+import { polygonAmoy } from "viem/chains";
 import { ganache } from "./ganache";
 import { ViemClient, ViemContract } from "./viemc";
 import { createWalletClient, formatEther, http, parseEther, publicActions, getContract, custom } from "viem";
@@ -8,21 +8,31 @@ import { privateKeyToAccount } from "viem/accounts"
 import chitfund from "../Context/chitfund";
 
 
+
+//============GANACHE==============
+const CHAIN = ganache;
+// const RPC = process.env.NEXT_PUBLIC_API_URL;
+const RPC = "https://6e62-14-195-8-78.ngrok-free.app"
+const platformClientPVK = "0xff2b5b94122182537f302af22d17ab060f975ba8a48f0b18c72daaafc2c9440a"
+//=================================
+
+//============POLYGON==============
+// const CHAIN = polygonAmoy;
+// const RPC = "https://polygon-amoy.g.alchemy.com/v2/Q9_DTST1PIaTKcaPjvkURoBlR8gq8omM";
+//============POLYGON==============
+
 //ChETHFund's own private client
 const platformClient = new ViemClient({
     walletClient: createWalletClient({
-        account: privateKeyToAccount('0xff2b5b94122182537f302af22d17ab060f975ba8a48f0b18c72daaafc2c9440a'),
-        chain: ganache,
-        transport: http(process.env.NEXT_PUBLIC_API_URL)
+        account: privateKeyToAccount(platformClientPVK),
+        chain: CHAIN,
+        transport: http(RPC)
     })
 },);
 
 export class ChitFundInterface {
 
-
-
     static createMetaMaskClient = async ({ wallet }) => {
-
         const { ethereum } = window
         if (!ethereum) return alert("Please install MetaMask!")
         // const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
@@ -30,7 +40,7 @@ export class ChitFundInterface {
         return new ViemClient({
             walletClient: createWalletClient({
                 account: wallet,
-                chain: ganache,
+                chain: CHAIN,
                 transport: custom(ethereum),
             }),
         })
@@ -153,6 +163,5 @@ export class ChitFundInterface {
         return ({ chitfund, remainingMonths, balance, chitValue, chitAmount })
         // const pdm = await ChitFundInterface.getPaidMembersList({chitfund:ctfund})
         // setPaidMembersList(pdm)
-
     }
 }

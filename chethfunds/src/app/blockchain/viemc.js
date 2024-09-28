@@ -1,7 +1,5 @@
 import { decodeEventLog, formatEther, getAddress, getContract, parseAbi, parseEther, publicActions, toHex } from "viem";
 
-const API_URL = 'https://eth-sepolia.g.alchemy.com/v2/ThmK5GMa8cPgR5Sw9eLn4GhoFI5_51tM';
-
 class ViemGlobals {
     static eventUnsubscriberList = [];
 }

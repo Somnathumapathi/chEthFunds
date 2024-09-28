@@ -36,7 +36,10 @@ const room = () => {
         const { data, error } = await supabase.from('Room').select().eq('id', params.id)
         console.log(data, error)
         setRoomData(data[0])
-        console.log(roomData)
+
+        if (!data[0].contract_address) {
+            router.push('/');
+        }
 
     }
     const depositChit = async () => {
@@ -71,9 +74,24 @@ const room = () => {
         fetchdetails()
         // getBlockchainData()
     }, [])
-    useEffect(() => {
-        if (roomData) getBlockchainData()
 
+    // useEffect(() => {
+    //     (async () => {
+    //         if (params) {
+    //             const { data, err } = await supabase.from('Room').select().eq(`id`, params.id)
+    //             if (!data[0].contract_address) {
+    //                 router.push('/');
+    //             } else {
+    //                 getBlockchainData()
+    //             }
+    //         }
+    //     })();
+    // }, [params]);
+
+    useEffect(() => {
+        if (roomData?.contract_address) {
+            getBlockchainData()
+        }
     }, [roomData])
     return (
         <div className='flex flex-col items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-gradient-to-br from-background to-black'>
