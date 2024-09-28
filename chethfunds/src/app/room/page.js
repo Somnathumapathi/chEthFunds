@@ -28,7 +28,7 @@ const room = () => {
             <h1 className='text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600'>MY ROOMS</h1>
             <ConnectButton />
             {myRooms &&
-                <div className='flex flex-col'>
+                <div className='flex flex-col gap-y-4'>
                     {myRooms?.map((mr) => {
                         return (
                             <div className='cursor-pointer w-96 min-h-[100px] bg-black/15 rounded-lg flex flex-col justify-center items-start p-4' onClick={() => router.push(`/room/${mr.id}`)}>

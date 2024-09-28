@@ -15,11 +15,17 @@ const Auction = () => {
   const [myBid, setMyBid] = useState(0);
   const [seconds, setSeconds] = useState(20);
   // const [auctionStarted, setAuctionStarted] = useState(false);
-  const [winner, setWinner] = useState([]);
+  const [winner, setWinner] = useState();
   const [isManager, setIsManager] = useState(false)
   const [currentWinner, setCurrentWinner] = useState(null)
   const [user, setUser] = useState()
+  const [displayCalculations, setDisplayCalculations] = useState(true)
   const [chitfund, setChitFund] = useState()
+  const [balance, setBalance] = useState()
+  const [finalBid, setFinalBid] = useState()
+  const [chitAmount, setChitAmount] = useState()
+  const [calculations, setCalculations] = useState(null)
+  const [memberCount, setMemberCount] = useState(null)
   const { wallet } = useWallet();
 
   let timerId;
@@ -96,14 +102,21 @@ const Auction = () => {
     } else {
       winners = [currentWinner]
     }
+    setWinner(currentWinner);
     // winners.push(currentWinner)
     const monthsRem = data[0].months - 1;
     const client = await ChitFundInterface.createMetaMaskClient({ wallet })
     console.log(chitfund)
+    setFinalBid(data[0].bid_amount)
     await ChitFundInterface.finalizeBidAndDistributeFunds({ chitfund, client, bidAmount: String(data[0].bid_amount) })
     await supabase.from('Room').update({ winners: winners, bid_amount: 0, bid_time: 0, currentWinner: null, months: monthsRem }).eq('id', params.id)
     // setAuctionStarted(false)
     setMyBid(0)
+    const calcs = ChitFundInterface.getInternalCalculations({ contractBalance: balance, highestBidInEth: ethers.parseEther(String(finalBid)) })
+    setCalculations(calcs)
+    setTimeout(() => {
+      setDisplayCalculations(true)
+    }, 2000);
   }
   const getFactory = async ({ contractAddress }) => {
     const ctfund = await ChitFundInterface.getChitFundFromContractAddress({ contractAddress })
@@ -146,6 +159,36 @@ const Auction = () => {
     // const { data, error } = await supabase.from('User').select().eq('wallet_address', accAddress)
     init()
   }, [])
+  useEffect(async () => {
+    await getBlockchainData();
+  }, [])
+
+  const getBlockchainData = async () => {
+    // const client = await ChitFundInterface.createMetaMaskClient()
+    // setClient(client)
+    const chitAmt = await ChitFundInterface.getChitAmount({ chitfund: ctfund })
+    setChitAmount(chitAmt)
+
+    const ctfund = await ChitFundInterface.getChitFundFromContractAddress({ contractAddress: roomData?.contract_address })
+    setChitFund(ctfund)
+    console.log(ChitFundInterface)
+    const bal = await ChitFundInterface.getChitBalance({ chitfund: ctfund })
+    // console.log(bal)
+    setBalance(bal)
+    const memC = await ChitFundInterface.getMemberCount({ chitfund: ctfund })
+    // console.log(bal)
+    setMemberCount(memC)
+
+    // const rm = await ChitFundInterface.getRemainingMonths({ chitfund: ctfund })
+    // // console.log(rm)
+    // // setRemainingMonths(rm)
+    // const chitval = await ChitFundInterface.getChitValue({ chitfund: ctfund })
+    // setChitValue(chitval)
+
+    // const pdm = await ChitFundInterface.getPaidMembersList({chitfund:ctfund})
+    // setPaidMembersList(pdm)
+
+  }
   useEffect(() => {
     const subscription = supabase
       .channel(`public:Room:id=eq.${roomId}`)
@@ -188,11 +231,11 @@ const Auction = () => {
   return (
     <>
       <ConnectButton />
-      <div className='min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-transparent z-40 flex flex-col justify-center items-center'>
+      <div className='min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-transparent z-20 flex flex-col justify-center items-center'>
         <div className="flex flex-col justify-center items-center">
           <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">AUCTION</h1>
         </div>
-        <div className="flex flex-col justify-center items-center w-full m-10 p-10 bg-black/20 z-40 rounded-xl">
+        <div className="flex flex-col justify-center items-center w-full m-10 p-10 bg-black/20 z-20 rounded-xl">
           {currentWinner === wallet && <span className='absolute top-20 left-[85%] bg-green-600 w-2 h-2 rounded-full'></span>}
           {/* <span className='absolute top-20 left-[85%] bg-green-500 w-2 h-2 rounded-full'></span> */}
           <div className="flex flex-col justify-center items-center text-teal-500">
@@ -204,7 +247,7 @@ const Auction = () => {
                 className="w-max flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-pink-600"
                 onClick={() => placeBid()}
               >
-                <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md text-white z-50">
+                <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md text-white z-20">
                   Place Bid
                 </span>
               </button>
@@ -212,7 +255,7 @@ const Auction = () => {
                 className="flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-pink-600"
                 onClick={() => handleIncrement('increase')}
               >
-                <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md text-white z-50">
+                <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md text-white z-20">
                   Increase
                 </span>
               </button>
@@ -220,7 +263,7 @@ const Auction = () => {
                 className="flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-pink-600"
                 onClick={() => handleIncrement('decrease')}
               >
-                <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md text-white z-50">
+                <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md text-white z-20">
                   Decrease
                 </span>
               </button>
@@ -232,8 +275,39 @@ const Auction = () => {
             Start Auction
           </span>
         </button> : <></>}
-        {/* {winner && <p>Winner: {currentWinner}</p>} */}
+        {winner && <p className='text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 font-semibold'>Winner: <span className='text-white font-thin'>{currentWinner}</span></p>}
+        <p className='text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 font-semibold'>Winner: <span className='text-white font-thin'>{"currentWinner"}</span></p>
       </div>
+      {
+        displayCalculations &&
+        <div className='flex flex-col justify-center items-center fixed top-0 w-full h-screen z-50'>
+          <div className='relative top-0 z-50 w-2/3 h-1/2 rounded-lg bg-black flex flex-col justify-center items-center'>
+            <h3 className="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">CALCULATIONS</h3>
+            {/*chitAmount: cA (given) === chitAmount
+                memberCount: n (given)
+                winningBid: wB (given) === finalBid
+
+                contractBalance: b = cA * n === balance
+                splitAmount: sA = (wB / n) === finalBid / no of members
+                commission: c = 0.02 * b === 0.2 * balance 
+                remBalance: b2 = b - c === balance - ( 0.02 * balance )
+
+                deltaBidWinner: x = b2 - wB + sA - cA === balance-commission - finalBid + splitAmount - chitAmount
+                deltaOthers= sA - cA === splitAmount - chitAmount
+                    commission: number;
+                    amountSentToBidWinner: number;
+                    commonSplit: number;
+            */}
+            <div className='flex flex-col justify-center items-center w-full h-full'>
+              <p>Commission:<span>{calculations?.commission}</span></p>
+              <p>Bid winner receives:<span>{calculations?.amountSentToBidWinner}</span></p>
+              <p>Common Split:<span>{calculations?.commonSplit}</span></p>
+              <p>&Delta;Bid Winner:<span>{balance - calculations?.commission - finalBid + (finalBid / memberCount) - chitAmount}</span></p>
+              <p>&Delta;Others:<span>{(finalBid / memberCount) + chitAmount}</span></p>
+            </div>
+          </div>
+        </div>
+      }
     </>
   );
 };
