@@ -14,7 +14,7 @@ const Auction = () => {
   const [bidAmount, setBidAmount] = useState(0);
   const [myBid, setMyBid] = useState(0);
   const [seconds, setSeconds] = useState(20);
-  const [auctionStarted, setAuctionStarted] = useState(false);
+  // const [auctionStarted, setAuctionStarted] = useState(false);
   const [winner, setWinner] = useState([]);
   const [isManager, setIsManager] = useState(false)
   const [currentWinner, setCurrentWinner] = useState(null)
@@ -30,7 +30,10 @@ const Auction = () => {
 
   // Function to handle bidding
   const placeBid = async () => {
-    if (!auctionStarted) return alert('Auction not started yet!');
+    // if (!auctionStarted) return alert('Auction not started yet!');
+
+    const {data,err} = await supabase.from('Room').select().eq(`id`,params.id);
+    if (data[0].auction_active === false) return alert('Auction not started yet!');
     if (myBid <= roomData.bid_amount) return alert('Bid must be higher than current bid.');
     console.log(myBid)
     // Update the bid in the database
@@ -71,10 +74,10 @@ const Auction = () => {
   };
 
   const handleStartAuction = async () => {
-    setAuctionStarted(true)
+    // setAuctionStarted(true)
     // console.log('auction started')
-    const {error} = await supabase.from("Room").update({auction_active: true});
-    setAuctionStarted(true)
+    const {error} = await supabase.from("Room").update({auction_active: true}).eq('id', params.id)
+    // setAuctionStarted(true)
     startTimer()
     // const { data, error } = await supabase
     // .from('Room')
@@ -99,7 +102,7 @@ const Auction = () => {
     console.log(chitfund)
     await ChitFundInterface.finalizeBidAndDistributeFunds({ chitfund, client, bidAmount: String(data[0].bid_amount) })
     await supabase.from('Room').update({ winners: winners, bid_amount: 0, bid_time: 0, currentWinner: null, months: monthsRem }).eq('id', params.id)
-    setAuctionStarted(false)
+    // setAuctionStarted(false)
     setMyBid(0)
   }
   const getFactory = async ({contractAddress}) => {
@@ -160,9 +163,9 @@ const Auction = () => {
         // if (roomData.bid_amount) {
           // setBidAmount(roomData.bid_amount);
         // }
-        if (updatedRoom.auction_active) {
-          setAuctionStarted(updatedRoom.auction_active);
-        }
+        // if (updatedRoom.auction_active) {
+          // setAuctionStarted(updatedRoom.auction_active);
+        // }
         // if (updatedRoom.currentWinner) {
 
         //   setCurrentWinner(updatedRoom.currentWinner);
