@@ -5,7 +5,7 @@ import { supabase } from '../../../lib/supabaseClient'
 import ConnectButton from '../../../components/connectButton'
 import { useRouter } from 'next/navigation'
 
-const room = () => {
+const Room = () => {
     const { wallet } = useWallet()
     const [myRooms, setMyRooms] = useState([])
     const router = useRouter()
@@ -29,12 +29,12 @@ const room = () => {
             <ConnectButton />
             {myRooms &&
                 <div className='flex flex-col gap-y-4'>
-                    {myRooms?.map((mr) => {
+                    {myRooms?.map((mr, index) => {
                         return (
-                            <div className='cursor-pointer w-96 min-h-[100px] bg-black/15 rounded-lg flex flex-col justify-center items-start p-4' onClick={() => router.push(`/room/${mr.id}`)}>
+                            <div key={index} className='cursor-pointer w-96 min-h-[100px] bg-black/15 rounded-lg flex flex-col justify-center items-start p-4' onClick={() => router.push(`/room/${mr.id}`)}>
                                 <div><span className='text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600'>Room ID:</span>&nbsp;<span>{mr.id}</span></div>
-                                <div><span className='text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600'>Contract address:</span>&nbsp;<span>{mr.contract_address.slice(0,7) + '....' + mr.contract_address.slice(-7)}</span></div>
-                                <div><span className='text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600'>Contract manager:</span>&nbsp;<span>{mr.contract_manager.slice(0,7) + '....' + mr.contract_manager.slice(-7)}</span></div>
+                                <div><span className='text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600'>Contract address:</span>&nbsp;<span>{mr.contract_address.slice(0, 7) + '....' + mr.contract_address.slice(-7)}</span></div>
+                                <div><span className='text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600'>Contract manager:</span>&nbsp;<span>{mr.contract_manager.slice(0, 7) + '....' + mr.contract_manager.slice(-7)}</span></div>
                                 <div><span className='text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600'>Chit amount:</span>&nbsp;<span>{mr.chit_amount}</span></div>
                             </div>
                         )
@@ -44,4 +44,4 @@ const room = () => {
     )
 }
 
-export default room
+export default Room

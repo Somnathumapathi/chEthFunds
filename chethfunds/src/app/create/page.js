@@ -12,7 +12,7 @@ import ConnectButton from '../../../components/connectButton';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabaseClient';
 
-const create = () => {
+const Create = () => {
     const [memberSize, setMemberSize] = useState()
     const [chitAmount, setChitAmount] = useState()
     const { wallet } = useWallet();
@@ -68,4 +68,4 @@ const create = () => {
     )
 }
 
-export default create
+export default Create

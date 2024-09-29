@@ -4,19 +4,19 @@ import ConnectButton from '../../../components/connectButton';
 import { useWallet } from '../Context/wallet';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabaseClient';
-import { useSearchParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { ChitFundInterface } from '../blockchain/chitfund_interface';
 
-const join = () => {
+const Join = () => {
     const [roomId, setRoomId] = useState('')
     const { wallet } = useWallet();
     const router = useRouter();
-    const searchParams = useSearchParams()
+    const searchParams = useParams()
 
     useEffect(() => {
         console.log(wallet)
 
-        const id = searchParams.get('id')
+        const id = searchParams.id;
         setRoomId(id)
     }, [])
 
@@ -79,4 +79,4 @@ const join = () => {
     )
 }
 
-export default join
+export default Join

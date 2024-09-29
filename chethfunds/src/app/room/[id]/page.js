@@ -7,7 +7,7 @@ import { ViemClient } from '@/app/blockchain/viemc';
 import { useWallet } from '@/app/Context/wallet';
 import ConnectButton from '../../../../components/connectButton';
 
-const room = () => {
+const Room = () => {
     const params = useParams()
     const router = useRouter()
     const [roomId, setRoomId] = useState(null)
@@ -106,9 +106,9 @@ const room = () => {
                 <div className='flex flex-row gap-6'>
                     <span>Members:</span>
                     <div>
-                        {roomData?.members.map((m) => {
+                        {roomData?.members.map((m, index) => {
                             return (
-                                <div className='w-72 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800'>
+                                <div key={index} className='w-72 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800'>
                                     <h2>{m.slice(0, 7) + '...' + m.slice(32, 42)}</h2></div>
                             )
                         })}
@@ -119,9 +119,9 @@ const room = () => {
                     <h2>Remaining Months: {remainingMonths}</h2>
                     <h2>Paid members:</h2>
                     <div>
-                        {paidMembersList?.map((m) => {
+                        {paidMembersList?.map((m, index) => {
                             return (
-                                <div className='w-72 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800'>
+                                <div key={index} className='w-72 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800'>
                                     <h2>{m.slice(0, 7) + '...' + m.slice(32, 42)}</h2></div>
                             )
                         })}
@@ -152,4 +152,4 @@ const room = () => {
 
 }
 
-export default room
+export default Room

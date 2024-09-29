@@ -143,25 +143,25 @@ export class ChitFundInterface {
         await chitfund.write({ method: 'distributeFunds' });
     }
 
-    static getBlockchainData = async () => {
-        // const client = await ChitFundInterface.createMetaMaskClient()
-        // setClient(client)
+    // static getBlockchainData = async ({ roomData }) => {
+    //     // const client = await ChitFundInterface.createMetaMaskClient()
+    //     // setClient(client)
 
-        const chitfund = await ChitFundInterface.getChitFundFromContractAddress({ contractAddress: roomData.contract_address })
-        // setChitFund(ctfund)
-        // console.log(ctfund)
-        const remainingMonths = await ChitFundInterface.getRemainingMonths({ chitfund })
-        // console.log(rm)
-        // setRemainingMonths(rm)
-        const balance = await ChitFundInterface.getChitBalance({ chitfund })
-        // console.log(bal)
-        // setBalance(bal)
-        const chitValue = await ChitFundInterface.getChitValue({ chitfund })
-        // setChitValue(chitval)
-        const chitAmount = await ChitFundInterface.getChitAmount({ chitfund })
-        // setChitAmount(chitAmt)
-        return ({ chitfund, remainingMonths, balance, chitValue, chitAmount })
-        // const pdm = await ChitFundInterface.getPaidMembersList({chitfund:ctfund})
-        // setPaidMembersList(pdm)
-    }
+    //     const chitfund = await ChitFundInterface.getChitFundFromContractAddress({ contractAddress: roomData.contract_address })
+    //     // setChitFund(ctfund)
+    //     // console.log(ctfund)
+    //     const remainingMonths = await ChitFundInterface.getRemainingMonths({ chitfund })
+    //     // console.log(rm)
+    //     // setRemainingMonths(rm)
+    //     const balance = await ChitFundInterface.getChitBalance({ chitfund })
+    //     // console.log(bal)
+    //     // setBalance(bal)
+    //     const chitValue = await ChitFundInterface.getChitValue({ chitfund })
+    //     // setChitValue(chitval)
+    //     const chitAmount = await ChitFundInterface.getChitAmount({ chitfund })
+    //     // setChitAmount(chitAmt)
+    //     return ({ chitfund, remainingMonths, balance, chitValue, chitAmount })
+    //     // const pdm = await ChitFundInterface.getPaidMembersList({chitfund:ctfund})
+    //     // setPaidMembersList(pdm)
+    // }
 }
